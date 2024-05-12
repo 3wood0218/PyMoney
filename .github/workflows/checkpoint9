@@ -1,0 +1,162 @@
+import sys
+
+def initialize_categories():
+    lst = ['expense', ['food', ['meal', 'snack', 'drink'],
+                        'transportation', ['bus', 'railway']], 
+            'income', ['salary', 'bonus']]
+    return lst
+
+def view_categories(lst, loop = 0):
+    for i in range(len(lst)):
+        if not isinstance(lst[i], list):
+            print(" " * 2 * loop + "- " + f"{lst[i]}")
+        else:
+            view_categories(lst[i], loop+1)
+    return
+
+def initialize():
+    atTheBeginning = 0  
+    records = []
+    try:
+        with open('records.txt', 'r') as fh:
+            atTheBeginning = int(fh.readline().strip())
+            for line in fh:
+                cat, desc, amt = line.strip().split()
+                records.append((cat, desc,int(amt)))
+    except (FileNotFoundError, ValueError):
+
+        atTheBeginning = input('How much money do you have?')
+        try:
+            atTheBeginning = int(atTheBeginning)
+        except ValueError:
+            print('Invalid value for money. Set to 0 by default.')
+            atTheBeginning = 0
+
+    return atTheBeginning, records
+
+def save_data(atTheBeginning, records):
+    with open('records.txt', 'w') as fh:
+        fh.write(str(atTheBeginning) + '\n')
+        for cat, desc, amt in records:
+            fh.write(f'{cat} {desc} {amt}\n')
+
+def is_category_valid(cat, lst):
+    for i in range(len(lst)):
+        if not isinstance(lst[i], list):
+            if (lst[i] in lst):
+                return True
+        else:
+            is_category_valid(cat, lst[i])
+    return False
+
+def add(records, lst): 
+    spend = input('Add an expense or income record with description and amount(srperate by spaces):\ncat1 desc1 amt1,cat2 desc2 amt2,cat3 desc3 amt3, ...\n')
+    try:
+        input_lst = spend.split(',')
+        n = len(input_lst)
+        cat = []
+        desc = []
+        amt = []
+        for i in range(n):
+            index = input_lst[i].split()
+            cat.append(index[0])
+            desc.append(index[1])
+            amt.append(index[2])
+        try:
+            for i in range(n):
+                if (is_category_valid(cat[i], lst) == False): 
+                    print('The specified category is not in the category list.\nYou can check the category list by command \"view categories\".\nFail to add a record.\n')
+                else:
+                    records.append((cat[i] ,desc[i], int(amt[i])))
+        except ValueError:
+                print('Invalid value for money.\nFail to add a record.')
+    except ValueError:
+        print('The format of a record should be like this: breakfast -50.\nFail to add a record.')
+    return records
+
+def view(atTheBeginning, records):
+    print('Category        Descriptions         Amount')
+    print('--------------- -------------------- --------')
+    balance = atTheBeginning
+    try:
+        for cat, desc, amt in records:
+            balance += amt
+            print(f'{cat.ljust(16)}{desc.ljust(20)} ${amt}')
+    except:
+        pass
+    finally:
+        print('--------------- -------------------- --------')
+        print(f'Now you have {balance} dollars.')
+
+def delete(records):
+    omit = input('Which description and amount you what to delete\n')
+    try:
+        omit_cat, omit_desc, omit_amt = omit.split()
+        omit_amt = int(omit_amt)
+        if (omit_cat, omit_desc, omit_amt) not in records:
+            print(f"There's no record with {omit_cat} {omit_desc} {omit_amt}. Fail to delete a record.")
+        else:
+            try:
+                records.remove((omit_cat, omit_desc, int(omit_amt)))
+            except ValueError:
+                print('Invalid format. Fail to delete a record.')
+    except ValueError:
+        print('Invalid format. Fail to delete a record.')
+    return records
+
+def find(records, lst, target):
+    subcategories = find_subcategories(target, lst)
+    filtered_records = filter(lambda x: x[0] in subcategories, records)
+    #for every x in records, looks it if it is in the subcategories.
+    print('Category        Description          Amount')
+    print('=============== ==================== ======')
+    total_amount = 0
+    for record in filtered_records:
+        total_amount += record[2]
+        print(f'{record[0].ljust(16)}{record[1].ljust(20)} ${record[2]}')
+    print('=============== ==================== ======')
+    print(f'The total amount above is {total_amount}.')
+
+def find_subcategories(target, lst):
+    result = []
+    for i in range(len(lst)):
+        if target == lst[i]:
+            result.append(lst[i])
+            if i + 1 < len(lst) and isinstance(lst[i+1], list):
+                L = flatten(lst[i+1])
+                result.extend(L)
+        elif isinstance(lst[i], list):
+            sub_result = find_subcategories(target, lst[i])
+            result.extend(sub_result)
+    return result
+
+def flatten(L):
+    if isinstance(L, list):
+        result = []
+        for i in L:
+            result.extend(flatten(i))
+        return result
+    else:
+        return [L]
+    
+atTheBeginning, records = initialize()
+lst = initialize_categories()
+
+while True:
+    next_step = input('\nWhat do you want to do (add / view / delete / view_categories / find / exit)?\n') 
+    if next_step == 'add':
+        records = add(records, lst)
+    elif next_step == 'view':
+        view(atTheBeginning, records)
+    elif next_step == 'delete':
+        records = delete(records)
+    elif next_step == 'exit':
+        save_data(atTheBeginning, records)
+        break
+    elif next_step == 'view_categories':
+        view_categories(lst, 0)
+    elif next_step == 'find':
+        target = input("Which category do you want to find?\n")
+        find(records, lst, target)
+    else:
+        sys.stderr.write('Invalid command. Try again.\n')
