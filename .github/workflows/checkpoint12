@@ -73,13 +73,13 @@ class Records:
         try:
             Records.read_and_write(self)
         except FileNotFoundError:
-            with open("record.txt", "w") as fh:
+            with open("records.txt", "w") as fh:
                 pass
         Records.read_and_write(self)
 
     def read_and_write(self):
         try:
-            with open('record.txt', 'r') as fh:
+            with open('records.txt', 'r') as fh:
                 self._init_balance = int(fh.readline().strip())
                 for line in fh:
                     cat, desc, amt = line.strip().split()
@@ -87,12 +87,12 @@ class Records:
         except ValueError:
             try:
                 self._init_balance =  int(input("How much money do you have?"))
-                with open("record.txt", "w") as fh:
+                with open("records.txt", "w") as fh:
                     fh.write(f"{self._init_balance}\n")
             except ValueError:
                 print("Invalid value for money. Set to 0 by default.")
                 self._init_balance = 0
-                with open("record.txt", "w") as fh:
+                with open("records.txt", "w") as fh:
                     fh.write(f"{self._init_balance}\n")
 
         return self._init_balance, self._records
