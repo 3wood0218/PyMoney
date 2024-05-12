@@ -42,11 +42,11 @@ def save_data(atTheBeginning, records):
 
 def is_category_valid(cat, lst):
     for i in range(len(lst)):
-        if not isinstance(lst[i], list):
-            if (lst[i] in lst):
+        if isinstance(lst[i], list):
+            if is_category_valid(cat, lst[i]):
                 return True
-        else:
-            is_category_valid(cat, lst[i])
+        elif (cat == lst[i]):
+            return True
     return False
 
 def add(records, lst): 
