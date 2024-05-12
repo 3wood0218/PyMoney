@@ -160,7 +160,7 @@ class Records:
         return self._records
     
     def find(self):
-        subcategories = categories.find_subcategories(target)
+        subcategories = categories.find_subcategories(target, categories._categories)
         filtered_records = filter(lambda x: x[0] in subcategories, self._records)
         #for every x in records, looks it if it is in the subcategories.
         print('Category        Description          Amount')
@@ -187,11 +187,10 @@ while True:
         categories.view()
     elif command == 'find':
         target = input('Which category do you want to find?')
-        target_categories = categories.find_subcategories(target)
+        target_categories = categories.find_subcategories(target, categories._categories)
         records.find(target_categories)
     elif command == 'exit':
         records.save_data()
         break
     else:
         sys.stderr.write('Invalid command. Try again.\n')
-
